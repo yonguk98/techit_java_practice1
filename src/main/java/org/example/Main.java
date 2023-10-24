@@ -1,24 +1,33 @@
 package org.example;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
 
 import static java.lang.System.exit;
 
 public class Main {
-    public static void main(String[] args) {
-        JSONObject jsonObject = new JSONObject();
-        System.out.println("== 명언 앱 ==");
-        int sequence=1;
-        Scanner scanner = new Scanner(System.in);
+    public static void main(String[] args) throws IOException, ParseException {
+        int sequence = 1;
         Map<Integer,Say> storage = new HashMap<>();
+
+        load();
+
+        System.out.println("== 명언 앱 ==");
+        Scanner scanner = new Scanner(System.in);
+
         while(true) {
             System.out.print("명령) ");
             String cmd = scanner.next();
             if (cmd.equals("종료")) {
+                save(mapTojson(storage,sequence));
                 exit(0);
             }
             if (cmd.equals("등록")) {
@@ -73,6 +82,36 @@ public class Main {
             }
         }
     }
+
+    public static void save(JSONArray jsonArray) throws IOException {
+        FileWriter fileWriter = new FileWriter("./save.json");
+        fileWriter.write(jsonArray.toJSONString());
+        fileWriter.flush();
+        fileWriter.close();
+    }
+    public static JSONArray mapTojson(Map<Integer,Say> map,int sequence){
+        JSONArray jsonArray = new JSONArray();
+        for (int i = 1; i < sequence; i++) {
+            if(map.containsKey(i)) {
+                Map<Object,Object> temp = new HashMap<>();
+                Say data = map.get(i);
+                temp.put("id", data.getId());
+                temp.put("writer", data.getWriter());
+                temp.put("content", data.getText());
+                jsonArray.add(temp);
+            }
+        }
+        return jsonArray;
+    }
+    public static JSONArray load() throws IOException, ParseException {
+        JSONParser jsonParser = new JSONParser();
+        FileReader fileReader = new FileReader("./save.json");
+
+        JSONArray jsonArray = (JSONArray) jsonParser.parse(fileReader);
+        System.out.println("jsonArray = " + jsonArray.toJSONString());
+        return jsonArray;
+    }
+
 }
 class Say{
     private int id = -1;
