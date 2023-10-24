@@ -1,25 +1,27 @@
 package org.example;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.net.URL;
 import java.util.*;
 
 import static java.lang.System.exit;
 
 public class Main {
     public static void main(String[] args) throws IOException, ParseException {
-        int sequence = 1;
         Map<Integer,Say> storage = new HashMap<>();
-
-        load();
-
+        int sequence = 1;
+        try {
+        storage = load();
+        sequence = storage.keySet().stream().mapToInt(x->x).max().getAsInt()+1;
+        } catch (IOException e) {
+        }
         System.out.println("== 명언 앱 ==");
         Scanner scanner = new Scanner(System.in);
 
@@ -42,14 +44,14 @@ public class Main {
             if(cmd.equals("목록")){
                 System.out.println("번호 / 작가 / 명언 ");
                 System.out.println("-----------------");
-                for (int i = 1; i < sequence; i++) {
+                for (int i = 1; i <= sequence; i++) {
                     if(storage.containsKey(i)) {
                         Say temp = storage.get(i);
                         System.out.println(temp.getId() + " / " + temp.getWriter() + " / " + temp.getText());
                     }
                 }
             }
-            if (cmd.contains("삭제")){
+            if (cmd.contains("삭제?id=")){
                 int eqIdx = cmd.indexOf("=");
                 int inputId = Integer.parseInt(cmd.substring(eqIdx+1,cmd.length()));
 
@@ -59,7 +61,7 @@ public class Main {
                     System.out.println(inputId+"번 명언은 존재하지 않습니다.");
                 }
             }
-            if (cmd.contains("수정")){
+            if (cmd.contains("수정?id=")){
                 int eqIdx = cmd.indexOf("=");
                 int inputId = Integer.parseInt(cmd.substring(eqIdx+1,cmd.length()));
 
@@ -83,33 +85,36 @@ public class Main {
         }
     }
 
-    public static void save(JSONArray jsonArray) throws IOException {
+    public static void save(String  jsonData) throws IOException {
         FileWriter fileWriter = new FileWriter("./save.json");
-        fileWriter.write(jsonArray.toJSONString());
+        fileWriter.write(jsonData);
         fileWriter.flush();
         fileWriter.close();
     }
-    public static JSONArray mapTojson(Map<Integer,Say> map,int sequence){
-        JSONArray jsonArray = new JSONArray();
+    public static String mapTojson(Map<Integer,Say> map,int sequence) throws JsonProcessingException {
+        List<Say> sayList = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
         for (int i = 1; i < sequence; i++) {
             if(map.containsKey(i)) {
-                Map<Object,Object> temp = new HashMap<>();
-                Say data = map.get(i);
-                temp.put("id", data.getId());
-                temp.put("writer", data.getWriter());
-                temp.put("content", data.getText());
-                jsonArray.add(temp);
+                sayList.add(map.get(i));
             }
         }
-        return jsonArray;
+        return objectMapper.writeValueAsString(sayList);
     }
-    public static JSONArray load() throws IOException, ParseException {
-        JSONParser jsonParser = new JSONParser();
-        FileReader fileReader = new FileReader("./save.json");
+    public static Map<Integer,Say> load() throws IOException {
+        String path = "./save.json";
+        File jsonFile = new File(path);
 
-        JSONArray jsonArray = (JSONArray) jsonParser.parse(fileReader);
-        System.out.println("jsonArray = " + jsonArray.toJSONString());
-        return jsonArray;
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Map> list = objectMapper.readValue(jsonFile,List.class);
+
+        Map<Integer,Say> map = new HashMap<>();
+        for (int i = 0; i < list.size(); i++) {
+            Map<String ,Object> data = list.get(i);
+            Say say = new Say((int)data.get("id"),(String) data.get("writer"),(String) data.get("text"));
+            map.put((int)data.get("id"),say);
+        }
+        return map;
     }
 
 }
