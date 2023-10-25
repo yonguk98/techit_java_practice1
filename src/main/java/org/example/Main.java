@@ -1,9 +1,13 @@
 package org.example;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import netscape.javascript.JSObject;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 import static java.lang.System.exit;
@@ -17,7 +21,9 @@ public class Main {
         try {//세이브 파일이 존재하면 storage 및 sequence 업데이트
         storage = load();
         sequence = storage.keySet().stream().mapToInt(x->x).max().getAsInt()+1;
+         System.out.println("load complete");
         } catch (IOException e) {
+            System.out.println("no save file");
         }
 
         //어플 시작
@@ -46,12 +52,11 @@ public class Main {
             if(cmd.equals("목록")){
                 System.out.println("번호 / 작가 / 명언 ");
                 System.out.println("-----------------");
-                for (int i = 1; i <= sequence; i++) {
-                    if(storage.containsKey(i)) {
-                        Say temp = storage.get(i);
-                        System.out.println(temp.getId() + " / " + temp.getWriter() + " / " + temp.getText());
-                    }
+
+                for (Say data : storage.values()) {
+                    System.out.println(data.getId() + " / " + data.getWriter() + " / " + data.getText());
                 }
+
             }
             //삭제 명령, '?id=' 없을시 인식안함
             if (cmd.contains("삭제?id=")){
@@ -99,26 +104,25 @@ public class Main {
     public static String mapToJson(Map<Integer,Say> map,int sequence) throws JsonProcessingException {
         List<Say> sayList = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
-        for (int i = 1; i < sequence; i++) {
-            if(map.containsKey(i)) {
-                sayList.add(map.get(i));
-            }
+        for (Say data : map.values()) {
+            sayList.add(data);
         }
         return objectMapper.writeValueAsString(sayList);
     }
     //세이브 파일 읽기
     public static Map<Integer,Say> load() throws IOException {
-        String path = "./save.json";
-        File jsonFile = new File(path);
-
         ObjectMapper objectMapper = new ObjectMapper();
-        List<Map> list = objectMapper.readValue(jsonFile,List.class);
 
+        // json file to String
+        String path = "./save.json";
+        String jsonFile = Files.readString(Path.of(path));
+        // json string to List<Obj>
+        List<Say> list = objectMapper.readValue(jsonFile, new TypeReference<List<Say>>() {});
+
+        // Object List to Map
         Map<Integer,Say> map = new HashMap<>();
-        for (int i = 0; i < list.size(); i++) {
-            Map<String ,Object> data = list.get(i);
-            Say say = new Say((int)data.get("id"),(String) data.get("writer"),(String) data.get("text"));
-            map.put((int)data.get("id"),say);
+        for (Say data : list) {
+            map.put(data.getId(),data);
         }
         return map;
     }
@@ -129,11 +133,14 @@ class Say{
     private String writer = "미등록";
     private String text = "미등록";
 
+    public Say(){
+    }
     public Say(int id, String writer, String text) {
         this.id = id;
         this.writer = writer;
         this.text = text;
     }
+
 
     public int getId() {
         return id;
