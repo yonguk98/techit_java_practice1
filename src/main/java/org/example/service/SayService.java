@@ -37,6 +37,10 @@ public class SayService {
     }
 
     public void update(int inputId){
+        if(inputId==-1){
+            System.out.println("수정할 명언의 번호를 입력해주세요.");
+            return;
+        }
         Say findData = sayRepostiory.findById(inputId);
         if(findData!=null) {
             System.out.println("명언(기존): " + findData.getText());
@@ -48,6 +52,8 @@ public class SayService {
             String inputWriter = scanner.next();
 
             sayRepostiory.update(inputId,inputWriter,inputContent);
+        }else{
+            System.out.println(inputId + "번 명언은 존재하지 않습니다.");
         }
     }
 
