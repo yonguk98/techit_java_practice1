@@ -11,13 +11,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-import static java.lang.System.exit;
-
-public class SayRepostiory {
+public class HashmapSayRepostiory implements SayRepository {
     private Map<Integer, Say> storage;
     private ObjectMapper objectMapper;
     private int sequence = 1;
-    public SayRepostiory(){
+    public HashmapSayRepostiory(){
         objectMapper = new ObjectMapper();
         storage = new HashMap<>();
         try{
