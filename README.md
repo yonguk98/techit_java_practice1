@@ -22,3 +22,10 @@
 - 잘못된 형식의 입력값에 대한 반응 추가
 - Main class와 App class 분리
 - App class에서 주요 인스턴스 관리 및 의존성 주입 
+
+#### 231027 수정사항
+- mysql연결 및 hashmap을 이용한 저장방식과 jdbc를 이용한 방식의 파일 분리
+
+#### 231030 수정사항
+- github flow 적용 시작, 이슈 생성, 브랜치 구분
+- JdbcSayRepository 개발부터 TDD 적용 시작
