@@ -29,3 +29,4 @@
 #### 231030 수정사항
 - github flow 적용 시작, 이슈 생성, 브랜치 구분
 - JdbcSayRepository 개발부터 TDD 적용 시작
+  - e/1 branch 생성
